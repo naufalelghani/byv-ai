@@ -1,0 +1,31 @@
+{
+  "run_name": "byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2",
+  "base_model": "Qwen/Qwen3-1.7B",
+  "adapter_dir": "/content/drive/MyDrive/BYV-AI/outputs/byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2",
+  "test_path": "/content/drive/MyDrive/BYV-AI/data/test.jsonl",
+  "test_examples": 35,
+  "category_counts": {
+    "multi_turn_sequence": 2,
+    "clarification_safety": 2,
+    "dsml_single_tool": 4,
+    "reasoning": 3,
+    "markdown": 3,
+    "plain_text_with_tools": 3,
+    "code_javascript_typescript": 3,
+    "plain_text": 3,
+    "code_python": 3,
+    "code_html_css": 3,
+    "code_sql_other": 2,
+    "dsml_multiple_independent": 2,
+    "tool_result_to_markdown": 2
+  },
+  "nonempty_predictions": 35,
+  "unfinished_thinking_count": 0,
+  "reference_dsml_count": 6,
+  "prediction_dsml_count": 6,
+  "dsml_behavior_matches": 35,
+  "dsml_structurally_valid": 6,
+  "dsml_structurally_invalid": 0,
+  "mean_latency_seconds": 9.46,
+  "warning": "These are automated structural/presence checks only. DSML tool execution was not performed. Required arguments, argument values, semantic correctness, and code behavior require separate review."
+}
