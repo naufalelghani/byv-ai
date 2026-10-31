@@ -18,7 +18,7 @@
 | Basic DSML wrapper checks | 6 valid, 0 invalid |
 | Mean inference latency | 9.46 seconds / example |
 
-These results confirm that the inference loop completed and returned non-empty outputs. **The 35/35 behavior match is only a binary check for whether DSML appears when the reference contains DSML. It is not semantic accuracy.** The original validator checked wrappers and parameter JSON formatting, but did not verify required parameters or correctness of argument values.
+These results confirm that the inference loop completed and returned non-empty outputs. **The 35/35 behavior match is only a binary check for whether DSML appears when the reference contains DSML. It is not semantic accuracy.** The original validator checked wrappers and parameter JSON formatting, but did not verify required parameters or correctness of argument values. The repository notebook was subsequently upgraded to check declared tool names and required/allowed parameter names on future runs; the uploaded v0.1 summary below still reflects the earlier validator.
 
 ## Findings from manual inspection
 
