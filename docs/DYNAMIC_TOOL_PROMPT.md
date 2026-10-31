@@ -44,7 +44,8 @@ function toolsToPrompt(tools) {
     lines.push('5. Use this DSML structure (the leading space after the DSML token in calls/invoke/parameter is intentional):');
     lines.push('<｜DSML｜ calls>');
     lines.push('<｜DSML｜ invoke name="Bash">');
-    lines.push('<｜DSML｜ parameter name="command" string="true">pwd</｜DSML｜ parameter>');
+    lines.push('<｜DSML｜ parameter name="command" string="true">npm run check</｜DSML｜ parameter>');
+    lines.push('<｜DSML｜ parameter name="description" string="true">Run npm run check in the repository root</｜DSML｜ parameter>');
     lines.push('</｜DSML｜ invoke>');
     lines.push('</｜DSML｜ calls>');
     lines.push('6. For string arguments, set string="true" and write the raw string value without JSON quoting or escaping.');
@@ -54,7 +55,7 @@ function toolsToPrompt(tools) {
     lines.push('10. Use plain text when the task is complete or no additional tool is needed.');
     lines.push('');
     lines.push('VALID DSML TOOL CALL EXAMPLE (formatting example only):');
-    lines.push('<｜DSML｜ calls><｜DSML｜ invoke name="Bash"><｜DSML｜ parameter name="command" string="true">pwd</｜DSML｜ parameter></｜DSML｜ invoke></｜DSML｜ calls>');
+    lines.push('<｜DSML｜ calls><｜DSML｜ invoke name="Bash"><｜DSML｜ parameter name="command" string="true">npm run check</｜DSML｜ parameter><｜DSML｜ parameter name="description" string="true">Run npm run check in the repository root</｜DSML｜ parameter></｜DSML｜ invoke></｜DSML｜ calls>');
     lines.push('Put all requested tool invocations inside one calls block. Do not append closing DSML tags a second time.');
     lines.push('');
     lines.push('EXAMPLE: TOOL REQUIRED');
@@ -81,12 +82,13 @@ Assistant: respond with ordinary text. Do not emit DSML.
 
 ### One tool is needed
 
-Given a tool named `Bash` with a declared string parameter named `command`, a request that requires a shell command may produce:
+Given a tool named `Bash` whose active schema declares string parameters `command` and `description`, a request that requires a shell command may produce the following. The `description` parameter is included because it is part of this example's tool schema; it is not a universal DSML parameter for every tool:
 
 ```text
 <｜DSML｜ calls>
 <｜DSML｜ invoke name="Bash">
-<｜DSML｜ parameter name="command" string="true">pwd</｜DSML｜ parameter>
+<｜DSML｜ parameter name="command" string="true">npm run check</｜DSML｜ parameter>
+<｜DSML｜ parameter name="description" string="true">Run npm run check in the repository root</｜DSML｜ parameter>
 </｜DSML｜ invoke>
 </｜DSML｜ calls>
 ```
@@ -114,7 +116,7 @@ If the tool list is empty, the helper returns an empty string. The surrounding s
 - DSML is assistant text, not native tool-call metadata.
 - Use exactly one outer calls block per assistant tool response.
 - Use one invoke block per requested tool.
-- Use exact tool and parameter names from the current tool list.
+- Use exact tool and parameter names from the current tool list. Include every required parameter declared by the active schema; a tool may require multiple string parameters such as `command` and `description`.
 - For string parameters, use `string="true"`; for non-string JSON values, use `string="false"`.
 - Do not put prose or Markdown inside the calls block.
 - Do not append duplicate closing tags.
