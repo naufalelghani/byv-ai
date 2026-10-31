@@ -55,9 +55,10 @@ Di luar scope v0.1:
 - [x] Implement strict parser dan serializer Python.
 - [x] Implement trusted registry, schema subset, allowlist, approval gate.
 - [x] Tambahkan OpenAI dan Anthropic bridge awal.
-- [ ] Jalankan seluruh unit test dan CI pada branch.
-- [ ] Review detail API payload terhadap API version yang ditargetkan.
-- [ ] Tambahkan test untuk malformed provider payload, multi-tool, approval, dan errors.
+- [x] Jalankan unit tests dan CI matrix Python 3.10, 3.11, dan 3.12 (23 tests passed pada masing-masing job).
+- [x] Tambahkan tests untuk malformed envelope, multi-call, schema, allowlist, dan approval gate.
+- [ ] Review payload terhadap versi API provider yang ditargetkan dan lakukan integration test end-to-end.
+- [ ] Tambahkan malformed provider-payload tests dan coverage untuk edge case lebih luas.
 
 Exit criteria: test suite passing; examples verified; spec and implementation agree.
 
