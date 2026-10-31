@@ -24,6 +24,14 @@ Eksperimen membangun model bahasa yang dapat menghasilkan **teks biasa** atau **
 | Deployment target | VPS CPU-only; konversi/quantization GGUF dan uji dengan llama.cpp/Ollama |
 | Safety | DSML parser/executor terpisah; validasi izin dan parameter sebelum menjalankan aksi |
 
+## Train in Google Colab
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/naufalelghani/byv-ai/blob/main/notebooks/BYV-AI_Training_v0.1.2_T4_FP16_DTYPE_FIX.ipynb)
+
+Open the BYV-AI v0.1.2 QLoRA notebook directly in Google Colab. The notebook is configured to detect the available GPU and select a compatible compute dtype; for Tesla T4 it uses FP16. Mount Google Drive and provide `train.jsonl` and `eval.jsonl` in `MyDrive/BYV-AI/data/` before enabling training.
+
+Notebook source: [`notebooks/BYV-AI_Training_v0.1.2_T4_FP16_DTYPE_FIX.ipynb`](notebooks/BYV-AI_Training_v0.1.2_T4_FP16_DTYPE_FIX.ipynb).
+
 ## Mulai dari sini
 
 1. [Rencana proyek dan tahapan](docs/PLAN.md)
