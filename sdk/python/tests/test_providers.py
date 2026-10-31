@@ -1,7 +1,10 @@
+import pytest
+
 from byv_fp import (
     ToolCall, ToolDefinition, ToolRegistry, parse_model_output,
     serialize_tool_calls, validate_response,
 )
+from byv_fp.errors import ProtocolValidationError
 from byv_fp.providers.anthropic import (
     anthropic_tool_result, anthropic_tool_results_message,
     from_content_blocks, to_messages_tools, to_tool_use_blocks,
@@ -14,16 +17,17 @@ from byv_fp.providers.openai import (
 )
 
 
-def make_report():
+def make_report(requires_approval=False):
     registry = ToolRegistry([ToolDefinition(
         name="weather.lookup",
         description="Look up weather.",
         input_schema={
             "type": "object",
-            "properties": {"city": {"type": "string"}},
+            "properties": {"city": {"type": "string", "description": "City name."}},
             "required": ["city"],
             "additionalProperties": False,
         },
+        requires_approval=requires_approval,
     )])
     parsed = parse_model_output(serialize_tool_calls([
         ToolCall("call_abc", "weather.lookup", {"city": "Martapura"})
@@ -56,3 +60,13 @@ def test_anthropic_messages_bridge():
     message = anthropic_tool_results_message([result])
     assert message["role"] == "user"
     assert message["content"][0]["tool_use_id"] == "call_abc"
+
+
+def test_approval_required_call_cannot_be_mapped_to_provider_payloads():
+    _, report = make_report(requires_approval=True)
+    with pytest.raises(ProtocolValidationError, match="Approval required"):
+        to_chat_completions_assistant_message(report)
+    with pytest.raises(ProtocolValidationError, match="Approval required"):
+        to_responses_function_calls(report)
+    with pytest.raises(ProtocolValidationError, match="Approval required"):
+        to_tool_use_blocks(report)
