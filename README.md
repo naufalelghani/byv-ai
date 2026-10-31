@@ -31,10 +31,10 @@ Host application executes approved tools
 
 Implementasi awal tersedia pada branch kerja:
 
-- [Python SDK source](https://github.com/naufalelghani/byv-ai/tree/feature/byv-fp-sdk-v0.1/sdk/python)
-- [SDK installation and usage](https://github.com/naufalelghani/byv-ai/blob/feature/byv-fp-sdk-v0.1/sdk/python/README.md)
-- [BYV-FP v1.0 protocol specification](https://github.com/naufalelghani/byv-ai/blob/feature/byv-fp-sdk-v0.1/docs/BYV_FP_SPEC.md)
-- [SDK architecture and provider mapping](https://github.com/naufalelghani/byv-ai/blob/feature/byv-fp-sdk-v0.1/docs/BYV_FP_SDK.md)
+- [Python SDK source](https://github.com/naufalelghani/byv-ai/tree/main/sdk/python)
+- [SDK installation and usage](https://github.com/naufalelghani/byv-ai/blob/main/sdk/python/README.md)
+- [BYV-FP v1.0 protocol specification](https://github.com/naufalelghani/byv-ai/blob/main/docs/BYV_FP_SPEC.md)
+- [SDK architecture and provider mapping](https://github.com/naufalelghani/byv-ai/blob/main/docs/BYV_FP_SDK.md)
 - [CI run — Python 3.10/3.11/3.12](https://github.com/naufalelghani/byv-ai/actions/runs/41238775697)
 
 Provider wajib di v0.1:
@@ -69,6 +69,16 @@ Target model yang dipilih untuk eksperimen berikutnya adalah **Qwen/Qwen3-4B-Thi
 Model card: https://huggingface.co/Qwen/Qwen3-4B-Thinking-2507
 
 QLoRA di Colab T4 akan diperlakukan sebagai eksperimen feasibility, bukan jaminan muat atau cepat. Konfigurasi harus diuji dengan memory probe dan sequence length konservatif.
+
+## Colab training — BYV-FP v0.2.1
+
+Notebook dapat dibuka langsung dari GitHub tanpa upload notebook ke Colab:
+
+- [Training QLoRA — Open in Colab](https://colab.research.google.com/github/naufalelghani/byv-ai/blob/main/notebooks/BYV-AI_Training_BYV-FP_v0.2.1_Qwen3-4B-Thinking-2507_T4_QLoRA.ipynb)
+- [Held-out test evaluation — Open in Colab](https://colab.research.google.com/github/naufalelghani/byv-ai/blob/main/notebooks/BYV-AI_Test_Evaluation_BYV-FP_v0.2.1_Qwen3-4B-Thinking-2507.ipynb)
+- [Colab quickstart](docs/BYV_FP_COLAB_v0.2.1.md)
+
+Dataset ZIP v0.2.1 perlu dipilih sekali pada training pertama; notebook menyimpannya di Google Drive agar notebook evaluasi dan run berikutnya dapat memakai salinan yang sama.
 
 ## Eksperimen legacy DSML
 
