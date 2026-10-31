@@ -4,6 +4,12 @@ BYV-AI adalah proyek model text-generation yang menghasilkan jawaban teks biasa 
 
 > **Status pengembangan:** fondasi Python SDK BYV-FP v0.1 sudah dibuat pada branch kerja. Unit tests **23 passed**; CI matrix Python **3.10, 3.11, dan 3.12 semuanya sukses**. Review edge cases provider dan integrasi end-to-end masih diperlukan sebelum rilis.
 
+## Arah format aktif: BYV markup
+
+Desain format yang sedang dikembangkan adalah **BYV structured markup** dengan tiga mode output: TEXT, MIXED, dan STRUCTURED. Draft grammar pertama tersedia di [BYV Format Specification v0.1](docs/BYV_FORMAT_SPEC_v0.1.md).
+
+Dokumen dan SDK **BYV-FP/1.0 JSON envelope** yang tercantum di bawah merupakan implementasi pendekatan sebelumnya. Keduanya dipertahankan untuk referensi dan belum dimigrasikan ke grammar BYV markup. Draft v0.1 ini belum berarti parser atau SDK markup sudah tersedia.
+
 ## Arsitektur
 
 ```text
