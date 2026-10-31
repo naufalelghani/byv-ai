@@ -4,6 +4,16 @@ BYV-AI adalah proyek model text-generation yang menghasilkan jawaban teks biasa 
 
 > **Status pengembangan:** fondasi Python SDK BYV-FP v0.1 sudah dibuat pada branch kerja. Unit tests **23 passed**; CI matrix Python **3.10, 3.11, dan 3.12 semuanya sukses**. Review edge cases provider dan integrasi end-to-end masih diperlukan sebelum rilis.
 
+## System prompt for BYV fine-tuning
+
+Prompt sumber disimpan di folder [system/](system/):
+
+- [BYV system prompt builder v0.1](system/BYV_SYSTEM_PROMPT_BUILDER_v0.1.js)
+- [Plain-text system prompt template v0.1](system/BYV_SYSTEM_PROMPT_TEMPLATE_v0.1.md)
+- [Catatan penggunaan dan sumber](system/README.md)
+
+Template teks disiapkan agar notebook fine-tuning mendatang dapat mengambil instruksi tetap dari repo dan memasukkan daftar tool/schema yang sesuai untuk setiap contoh.
+
 ## Arah format aktif: BYV markup
 
 Desain format yang sedang dikembangkan adalah **BYV structured markup** dengan tiga mode output: TEXT, MIXED, dan STRUCTURED. Draft grammar pertama tersedia di [BYV Format Specification v0.1](docs/BYV_FORMAT_SPEC_v0.1.md).
