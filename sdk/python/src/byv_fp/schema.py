@@ -14,6 +14,11 @@ _SUPPORTED = {
     "enum", "const", "minimum", "maximum", "minLength", "maxLength",
     "pattern", "minItems", "maxItems", "minProperties", "maxProperties",
 }
+# Annotation keywords do not affect validation and are common in provider schemas.
+_ANNOTATIONS = {
+    "title", "description", "default", "examples", "deprecated",
+    "readOnly", "writeOnly", "$schema", "$id",
+}
 
 
 def _matches_type(value: Any, expected: str) -> bool:
@@ -40,7 +45,7 @@ def validate_json_schema(
     """Return errors under the supported subset; unsupported keywords fail closed."""
     if not isinstance(schema, Mapping):
         raise ProtocolValidationError(f"{path}: schema must be an object")
-    unknown = set(schema) - _SUPPORTED
+    unknown = set(schema) - _SUPPORTED - _ANNOTATIONS
     if unknown:
         raise UnsupportedSchemaError(
             f"{path}: unsupported schema keyword(s): {', '.join(sorted(unknown))}"
