@@ -2,7 +2,7 @@
 
 BYV-AI adalah proyek model text-generation yang menghasilkan jawaban teks biasa atau **BYV Format Protocol (BYV-FP)** sebagai teks. Model tidak wajib menggunakan native tool-calling API. BYV-FP diproses oleh SDK terpisah yang memvalidasi permintaan lalu menjembatani format tersebut ke provider.
 
-> **Status pengembangan:** fondasi Python SDK BYV-FP v0.1 sudah ditambahkan pada branch kerja. Core menyediakan parser, validator schema, registry tool, allowlist, dan approval gate. Bridge provider mencakup OpenAI Chat Completions, OpenAI Responses API, dan Anthropic Messages API. Implementasi masih perlu test run/CI, review API edge cases, dan integrasi end-to-end sebelum dianggap rilis.
+> **Status pengembangan:** fondasi Python SDK BYV-FP v0.1 sudah dibuat pada branch kerja. Unit tests **23 passed**; CI matrix Python **3.10, 3.11, dan 3.12 semuanya sukses**. Review edge cases provider dan integrasi end-to-end masih diperlukan sebelum rilis.
 
 ## Arsitektur
 
@@ -35,6 +35,7 @@ Implementasi awal tersedia pada branch kerja:
 - [SDK installation and usage](https://github.com/naufalelghani/byv-ai/blob/feature/byv-fp-sdk-v0.1/sdk/python/README.md)
 - [BYV-FP v1.0 protocol specification](https://github.com/naufalelghani/byv-ai/blob/feature/byv-fp-sdk-v0.1/docs/BYV_FP_SPEC.md)
 - [SDK architecture and provider mapping](https://github.com/naufalelghani/byv-ai/blob/feature/byv-fp-sdk-v0.1/docs/BYV_FP_SDK.md)
+- [CI run — Python 3.10/3.11/3.12](https://github.com/naufalelghani/byv-ai/actions/runs/41238775697)
 
 Provider wajib di v0.1:
 - **OpenAI Chat Completions**
