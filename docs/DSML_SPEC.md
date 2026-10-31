@@ -40,13 +40,14 @@ The structure checks all pass and the CRLF artifact is gone.
 One last check: I'll compare against the reference with CRs stripped, then run the script.
 
 <｜DSML｜ calls>
-<｜DSML｜ invoke name="mcp__workspace__bash">
-<｜DSML｜ parameter name="command" string="true">cd /workspace/project && python3 fmt.py</｜DSML｜ parameter>
+<｜DSML｜ invoke name="Bash">
+<｜DSML｜ parameter name="command" string="true">npm run check</｜DSML｜ parameter>
+<｜DSML｜ parameter name="description" string="true">Run npm run check in the repository root</｜DSML｜ parameter>
 </｜DSML｜ invoke>
 </｜DSML｜ calls>
 ```
 
-Nama tool dan command hanya contoh tekstual. Tidak boleh dianggap tersedia atau dijalankan tanpa executor yang sesuai.
+Contoh Bash ini mengikuti format kanonis yang diberikan pemilik BYV-AI. Parameter `description` disertakan karena parameter tersebut dideklarasikan pada schema Bash dalam contoh. Nama tool dan command hanya contoh tekstual; keduanya tidak dianggap tersedia atau dijalankan tanpa schema aktif dan executor yang sesuai.
 
 ## 4. Aturan training data
 
