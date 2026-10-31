@@ -50,7 +50,7 @@ normalize payloads but do not make provider API calls.
 
 ## JSON Schema subset in v0.1
 
-Supported keywords:
+Validation keywords:
 - type: object, array, string, integer, number, boolean, null
 - properties, required, additionalProperties
 - items
@@ -60,8 +60,10 @@ Supported keywords:
 - minItems, maxItems
 - minProperties, maxProperties
 
-Unsupported keywords raise an error. This is not a claim of full JSON Schema
-conformance. A future backend can add full draft support behind this interface.
+Annotation-only keywords title, description, default, examples, deprecated,
+readOnly, writeOnly, $schema, and $id are accepted and ignored for validation.
+Unsupported assertion keywords raise an error. This is not full JSON Schema
+draft conformance.
 
 ## Provider mapping overview
 
