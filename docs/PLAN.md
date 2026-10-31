@@ -2,114 +2,124 @@
 
 ## 1. Visi
 
-Membangun model text-generation yang fleksibel:
-- Menghasilkan jawaban natural-language biasa secara default.
-- Menghasilkan DSML hanya ketika instruksi meminta DSML atau protokol aplikasi membutuhkannya.
-- Memahami instruksi dan melakukan reasoning yang berguna.
-- Mengeluarkan DSML sebagai **teks**, bukan native tool-call payload.
-- Dapat dijalankan pada VPS CPU-only setelah model/adapter dipersiapkan.
+Membangun model text-generation yang:
+- Menjawab dengan teks biasa secara default.
+- Menghasilkan BYV-FP sebagai teks hanya ketika protokol/aplikasi meminta tool action.
+- Menggunakan BYV-FP SDK sebagai lapisan parsing, validasi, policy, dan provider bridge.
+- Dapat dihubungkan ke provider OpenAI dan Anthropic tanpa mengikat format output model ke salah satu provider.
+- Dapat dievaluasi secara reproducible sebelum deployment.
 
-## 2. Ruang lingkup
+Target model eksperimen berikutnya: Qwen/Qwen3-4B-Thinking-2507. Ini adalah target, bukan klaim bahwa BYV-FP adapter sudah dilatih.
 
-### Termasuk
-- Menentukan grammar/protokol DSML yang dipakai.
-- Dataset supervised fine-tuning (SFT) dengan contoh teks biasa dan DSML.
-- Baseline model dan eksperimen QLoRA di Colab.
-- Evaluasi perilaku format, kualitas jawaban, dan regression.
-- Ekspor adapter/model dan uji inference CPU.
+## 2. Arsitektur target
 
-### Tidak termasuk pada fase awal
-- Melatih foundation model dari nol.
-- Membuat model yang mengeksekusi tool secara langsung.
-- Menganggap teks DSML sebagai instruksi aman tanpa pemeriksaan.
-- Menjamin reasoning internal model dapat diverifikasi hanya dari output.
+User → BYV-AI text generation → output:
+- Plain text → host menampilkan jawaban.
+- BYV-FP envelope → parser → schema validation → tool registry / request allowlist → approval gate → provider adapter → host application.
 
-## 3. Arsitektur target
+Provider bridge wajib:
+1. OpenAI Chat Completions.
+2. OpenAI Responses API.
+3. Anthropic Messages API.
 
-User → LLM → output teks:
-- Teks biasa → dikirim ke user.
-- DSML → parser → schema/permission validation → executor terpisah → hasil tool dikembalikan ke LLM → jawaban akhir.
+SDK menghasilkan payload native dan menormalisasi hasil provider. SDK tidak menjalankan tools dan tidak melakukan network request. Host application memiliki tanggung jawab eksekusi.
 
-Model hanya menghasilkan teks. Executor harus memvalidasi tool name, parameter, policy, dan izin pengguna. Jangan menjalankan command mentah dari model tanpa sandbox dan guardrails.
+## 3. Scope SDK v0.1
+
+- BYV-FP/1.0 strict parser dan serializer.
+- Plain text fallback hanya ketika header protokol tidak ada.
+- Malformed/unknown protocol header harus fail closed.
+- Typed JSON arguments.
+- Trusted tool registry.
+- JSON Schema subset validator dengan keyword support terdokumentasi.
+- Request-level allowlist.
+- Per-call approval gate.
+- OpenAI Chat Completions mapping.
+- OpenAI Responses API mapping.
+- Anthropic Messages API mapping.
+- Provider result mapping / call ID correlation.
+- Unit test dan CI.
+
+Di luar scope v0.1:
+- Tool execution engine.
+- Provider network client / agent loop.
+- Full JSON Schema draft conformance.
+- Streaming BYV-FP parser.
+- TypeScript/Rust SDK parity.
+- SOTA/performance claims tanpa benchmark.
 
 ## 4. Tahapan kerja
 
-### Phase 0 — Spesifikasi (sekarang)
-- [ ] Konfirmasi format DSML exact (whitespace, tag, terminator, escaping).
-- [ ] Definisikan kapan DSML boleh dipakai.
-- [ ] Tentukan contoh valid, invalid, dan teks biasa.
-- [ ] Tetapkan batas keselamatan executor.
+### Phase 0 — Protocol and SDK core
+- [x] Tentukan BYV-FP envelope untuk final response dan tool calls.
+- [x] Implement strict parser dan serializer Python.
+- [x] Implement trusted registry, schema subset, allowlist, approval gate.
+- [x] Tambahkan OpenAI dan Anthropic bridge awal.
+- [x] Jalankan unit tests dan CI matrix Python 3.10, 3.11, dan 3.12 (23 tests passed pada masing-masing job).
+- [x] Tambahkan tests untuk malformed envelope, multi-call, schema, allowlist, dan approval gate.
+- [ ] Review payload terhadap versi API provider yang ditargetkan dan lakukan integration test end-to-end.
+- [ ] Tambahkan malformed provider-payload tests dan coverage untuk edge case lebih luas.
 
-**Exit criteria:** dokumen DSML spec stabil dan contoh referensi dapat divalidasi.
+Exit criteria: test suite passing; examples verified; spec and implementation agree.
 
-### Phase 1 — Dataset v0
-- [ ] Buat dataset kecil untuk menguji pipeline.
-- [ ] Tambahkan contoh teks biasa tanpa DSML.
-- [ ] Tambahkan contoh DSML hanya saat diminta.
-- [ ] Tambahkan konteks multi-turn: setelah DSML, user meminta jawaban biasa.
-- [ ] Deduplicate dan cek contoh format.
-- [ ] Pisahkan train/validation/test agar contoh evaluasi tidak bocor ke training.
+### Phase 1 — Dataset migration
+- [ ] Migrasikan dataset DSML lama ke BYV-FP secara mekanis pada revision baru.
+- [ ] Audit semua contoh tool-call terhadap tool registry/schema.
+- [ ] Perbaiki argumen wajib, parameter hallucination, semantic values, dan tool outputs.
+- [ ] Human review train/eval examples.
+- [ ] Pastikan held-out test tidak bocor ke train/eval.
+- [ ] Bekukan dataset revision sebelum training.
 
-**Exit criteria:** dataset tervalidasi dan split reproducible.
+Exit criteria: tidak ada schema violation; label semantic direview; split reproducible dan test tetap held out.
 
-### Phase 2 — Baseline dan QLoRA
-- [ ] Jalankan baseline model tanpa fine-tuning.
-- [ ] Rekam output pada prompt test.
-- [ ] Training QLoRA SFT di Colab GPU yang tersedia.
-- [ ] Simpan adapter dan metadata eksperimen ke Drive.
-- [ ] Simpan checkpoint berkala untuk mengurangi risiko runtime terputus.
+### Phase 2 — Base model and QLoRA
+- [ ] Gunakan Qwen/Qwen3-4B-Thinking-2507 sebagai kandidat utama.
+- [ ] Verifikasi model card, revision, license, tokenizer, dan chat template.
+- [ ] Jalankan baseline inference tanpa adapter.
+- [ ] Uji QLoRA feasibility pada GPU aktual, termasuk T4 jika tersedia.
+- [ ] Pilih context length dan batch berdasarkan memory probe, bukan asumsi.
+- [ ] Training SFT hanya setelah dataset lolos review.
+- [ ] Simpan adapter, training config, revision, library versions, seed, dan logs.
 
-**Exit criteria:** training selesai, adapter tersimpan, loss/log tersedia.
+Exit criteria: training selesai, adapter tersimpan, dan semua metadata eksperimen tersedia.
 
-### Phase 3 — Evaluasi
-- [ ] Ukur DSML precision: output DSML ketika diminta.
-- [ ] Ukur false-positive: DSML muncul pada permintaan teks biasa.
-- [ ] Ukur validitas sintaks/struktur.
-- [ ] Nilai kualitas isi dan ketepatan instruksi.
-- [ ] Bandingkan baseline dengan fine-tuned model.
-- [ ] Periksa overfitting dan regresi.
+### Phase 3 — Evaluation
+- [ ] BYV-FP emission precision/recall sesuai prompt.
+- [ ] Plain-text false-positive rate.
+- [ ] Protocol parse validity.
+- [ ] Tool-name allowlist pass rate.
+- [ ] Required/allowed argument schema pass rate.
+- [ ] Semantic correctness dan grounding review.
+- [ ] OpenAI dan Anthropic adapter mapping tests.
+- [ ] Baseline vs fine-tuned comparison.
+- [ ] Latency, throughput, memory, and token counts.
 
-**Exit criteria:** hasil terukur; bukan hanya satu contoh yang terlihat berhasil.
+Exit criteria: report reproducible, manual review selesai, tidak hanya berdasarkan loss atau format presence.
 
-### Phase 4 — Deployment CPU
-- [ ] Tentukan apakah adapter digunakan langsung atau di-merge.
-- [ ] Merge bila sesuai, lalu export/convert ke GGUF.
-- [ ] Quantize (mulai dengan Q4_K_M sebagai percobaan).
-- [ ] Uji inference pada VPS CPU-only.
-- [ ] Catat RAM, token/s, latency, context size, dan kualitas.
-- [ ] Integrasikan model dengan backend melalui text completion.
+### Phase 4 — Deployment
+- [ ] Integrasikan model melalui text-generation endpoint.
+- [ ] Jalankan BYV-FP SDK di host backend.
+- [ ] Hubungkan provider bridge OpenAI/Anthropic.
+- [ ] Terapkan authentication, approval, sandbox, rate limit, timeout, audit logs.
+- [ ] Benchmark inference di CPU/GPU target.
+- [ ] Evaluasi quantization setelah ada quality baseline.
 
-**Exit criteria:** model berjalan stabil pada VPS dan hasil DSML lolos validator.
+## 5. Prinsip teknis
 
-### Phase 5 — Iterasi
-- [ ] Perbaiki dataset dari error evaluasi.
-- [ ] Bandingkan model/ukuran/rank LoRA.
-- [ ] Uji constrained decoding atau grammar pada runtime jika diperlukan.
-- [ ] Dokumentasikan setiap eksperimen.
+- Model mengeluarkan teks; SDK yang menangani protokol/provider mapping.
+- Tool schema dan permission berasal dari aplikasi.
+- Selalu fail closed terhadap invalid envelope, tool tak dikenal, schema violation, dan allowlist violation.
+- Approval adalah per-call dan harus dilakukan oleh host.
+- Provider IDs harus tetap terkorelasi dengan BYV-FP call IDs.
+- Jangan menjalankan kode/tool dari model secara langsung.
+- Satu eksperimen mengubah sesedikit mungkin variabel.
+- Pisahkan metrik struktural dari semantic quality.
 
-## 5. Prinsip eksperimen
+## 6. Status eksperimen lama
 
-- Ubah satu variabel per eksperimen jika memungkinkan.
-- Jangan memilih model hanya berdasarkan ukuran; ukur pada tugas BYV-AI.
-- Dataset berkualitas dan seimbang lebih penting daripada data duplikat.
-- Simpan model ID, revision, library versions, seed, config, dataset revision, dan metrik.
-- Jangan simpan API keys, token, data pribadi, atau secrets ke repo.
-- Catat kegagalan dan keterbatasan, bukan hanya hasil terbaik.
+Run Qwen3-1.7B/DSML adalah baseline historis saja. Angka training/evaluation di dalam experiment log tidak mewakili performa BYV-FP atau Qwen3-4B-Thinking-2507.
 
-## 6. Risiko dan mitigasi
+## 7. Model references
 
-| Risiko | Mitigasi |
-|---|---|
-| Model selalu mengeluarkan DSML | Sertakan contoh teks biasa dan instruksi eksplisit “jawab biasa” |
-| DSML rusak/parsial | Validator, contoh konsisten, dan tes format |
-| Model mengarang tool/parameter | Allowlist tool dan schema validation |
-| Perintah berbahaya | Permission checks, sandbox, approval, policy executor |
-| Colab runtime terputus | Checkpoint dan simpan adapter ke Drive |
-| Model terlalu lambat di CPU | Quantization, context limit, benchmark model lebih kecil |
-| Training mengurangi kemampuan umum | Validation set umum dan baseline comparison |
-
-## 7. Status
-
-- Saat ini: perencanaan.
-- Model baseline yang diusulkan: Qwen3-1.7B.
-- Belum ada hasil training yang diklaim.
+- Qwen3-4B-Thinking-2507: https://huggingface.co/Qwen/Qwen3-4B-Thinking-2507
+- Qwen3-4B-Instruct-2507: https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507 (non-thinking variant)

@@ -1,69 +1,81 @@
-# Colab QLoRA Training Plan
+# QLoRA Training Plan — BYV-FP / Qwen3-4B-Thinking-2507
 
 ## Goal
 
-Fine-tune an instruction model to respond with plain text by default and emit DSML-as-text only when requested. The initial training run is a pipeline smoke test, not proof of model quality.
+Fine-tune a thinking-capable instruction model to answer in ordinary text by
+default and emit the strict BYV-FP/1.0 text envelope when the application
+requires tool routing. This plan is prospective; no BYV-FP adapter has been
+trained yet.
 
-## Starting baseline
+## Target model
 
-- Proposed model: Qwen/Qwen3-1.7B (verify current model card, license, tokenizer/chat template, and compatibility before training).
-- Method: SFT + PEFT LoRA on a 4-bit quantized base (QLoRA).
-- Runtime: Google Colab free; GPU availability is variable.
-- Candidate stack: Transformers, Datasets, TRL, PEFT, bitsandbytes, Accelerate.
-- Starting LoRA settings to test: rank 16, alpha 32, dropout 0.05; adjust based on VRAM and validation.
-- Initial context length: conservative (e.g. 1024) until memory behavior is known.
-- Save adapter/checkpoints to Google Drive.
+- Candidate: Qwen/Qwen3-4B-Thinking-2507.
+- Model card: https://huggingface.co/Qwen/Qwen3-4B-Thinking-2507
+- Parameters: 4B class; thinking-only release.
+- License, revision, tokenizer, and chat template must be re-verified at run time.
+- Do not load the old Qwen3-1.7B DSML adapter onto this 4B base; it is not a compatible adapter or target format.
+
+The related Qwen3-4B-Instruct-2507 is a separate non-thinking variant, not a mode switch for the thinking-only 2507 checkpoint.
+
+## Colab / QLoRA feasibility
+
+- Target runtime: Google Colab, GPU availability variable.
+- Candidate hardware: Tesla T4 16 GB class, if assigned.
+- Quantization: 4-bit NF4 QLoRA; FP16 compute on T4.
+- Start with per-device batch size 1, gradient checkpointing, and conservative sequence length.
+- Run a memory probe before the full training job.
+- Do not assume 4B QLoRA will fit every free-tier runtime/configuration. Reduce context length or use a larger GPU if OOM.
+- Record peak VRAM, GPU model, and actual throughput.
 
 ## Workflow
 
-1. Inspect runtime GPU and memory; stop if no compatible GPU is available.
-2. Install and record exact library versions.
-3. Load and inspect model tokenizer and chat template.
-4. Validate dataset schema and DSML examples before training.
-5. Split train/validation/test by prompt or task family to avoid leakage.
-6. Tokenize using the model's chat template.
-7. Train SFT with assistant-response loss masking where supported by the model template.
-8. Save adapter, tokenizer files, training config, dataset revision, and logs.
-9. Evaluate base model and fine-tuned model on the same held-out prompts.
-10. Optionally merge adapter, export to a supported format, quantize, and benchmark CPU inference.
+1. Verify exact model revision, license, tokenizer, chat template, and generation defaults.
+2. Complete the BYV-FP dataset migration and human/schema review.
+3. Keep train, validation, and held-out test splits strictly separate.
+4. Run baseline inference on the held-out prompt list before training.
+5. Tokenize with the model's own chat template; verify how the thinking and final channels are represented.
+6. Train SFT with explicit loss masking and no contamination of hidden reasoning data.
+7. Save adapter, tokenizer assets if required, trainer config, seed, library versions, dataset revision, logs, and hardware metadata.
+8. Compare base and fine-tuned model on the same test set.
+9. Validate emitted BYV-FP using the SDK and validate semantic correctness manually.
+10. Test CPU/GPU deployment and quantization separately.
 
-## Dataset design
+## Dataset requirements
 
-Dataset needs at least these categories:
-- Plain text questions with plain text responses.
-- Explicit DSML requests with valid DSML responses.
-- Plain-text requests following a previous DSML turn.
-- DSML requests without claims of tool execution.
-- Reasoning/problem-solving tasks where response format is explicitly specified.
-- Refusal/clarification examples for unsupported or ambiguous actions.
-- Negative cases where DSML-like strings appear in quoted text but are not instructions, if relevant.
+Dataset must be revised from legacy DSML to BYV-FP:
+- Plain text questions with plain text answers.
+- BYV-FP final envelopes.
+- BYV-FP calls with valid IDs, registered tools, and typed JSON arguments.
+- Multi-call envelopes with distinct IDs.
+- Multi-turn cases where tool results are returned before final answer.
+- Tool results must be explicitly supplied in context; never teach the model to invent results.
+- Missing arguments must lead to a clarification or safe non-call, not fabrication.
+- Include invalid/unsupported-tool cases and plain-text quoted protocol strings.
+- Audit every tool schema and every required argument.
+- Human review all examples before training.
 
-Avoid copying private logs, credentials, personal data, or proprietary data without permission. Review licensing and data provenance.
+The existing synthetic DSML dataset is not ready for direct training on BYV-FP. A mechanical migration alone is insufficient.
 
 ## Evaluation
 
-Use a held-out set and report:
-- DSML-requested → DSML-emitted rate.
-- Plain-text-requested → unwanted DSML rate.
-- DSML syntax validity rate.
-- Required field/parameter schema pass rate.
-- Task correctness / instruction adherence (human or rubric review).
-- Output length, latency, and memory.
-- Baseline versus fine-tuned comparison.
+Report separately:
+- Plain-text false-positive protocol rate.
+- BYV-FP requested emission rate.
+- Parser validity rate.
+- Unknown-tool rejection rate.
+- Schema pass rate.
+- Allowlist and approval-gate behavior.
+- Tool argument semantic correctness.
+- Grounding in tool results.
+- Final answer quality.
+- Latency, throughput, context use, and VRAM/RAM peak.
+- Base model vs fine-tuned model comparisons.
 
-A small handcrafted smoke-test dataset is only for confirming code execution. It is not enough to train robust behavior.
+Structural validity is not semantic accuracy. Small synthetic seed datasets are pipeline smoke tests, not proof of broad capability.
 
-## Colab free constraints
+## CPU deployment
 
-- GPU type and quota are not guaranteed.
-- Runtime can disconnect; save checkpoints frequently.
-- Keep dataset and checkpoints in Drive, but avoid excessive repeated writes.
-- Start with a small model and conservative batch/context settings.
-- If OOM: lower context length, batch size, LoRA rank, or use gradient checkpointing.
-- Do not assume notebook works unchanged across future library versions; pin versions once a run is reproducible.
-
-## CPU deployment path (planned)
-
-Adapter → optionally merge into base → convert to GGUF using compatible conversion workflow → quantize (Q4_K_M is a candidate, not a guaranteed best) → benchmark on target CPU VPS with llama.cpp/Ollama.
-
-Verify tokenizer/chat-template behavior after conversion. Test plain-text and DSML prompts again after quantization.
+Test the base model / merged model and quantized variants on actual target CPU hardware.
+Record RAM, latency, tokens per second, context length, and task quality. Do
+not assume an exported GGUF preserves chat template or reasoning-channel
+behavior without an end-to-end test.
