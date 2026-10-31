@@ -40,16 +40,17 @@ A first Python SDK implementation has been added on branch feature/byv-fp-sdk-v0
 - Anthropic Messages API bridge.
 - Provider result helpers and unit tests.
 
-**Status:** source and test cases have been committed to the feature branch; test execution and CI verification are still pending. No BYV-FP model adapter or training metrics are claimed.
+**CI status:** GitHub Actions run [41238775697](https://github.com/naufalelghani/byv-ai/actions/runs/41238775697) completed successfully. Python 3.10, 3.11, and 3.12 matrix jobs all passed; the Python 3.11 log reports 23 passed. The workflow ran on source commit 35875017e8c4c0abd96a9ba33f0264558abccd71. API integration tests with live provider calls are not included.
+
+No BYV-FP model adapter or training metrics are claimed.
 
 ## Next experiments
 
-1. Run SDK unit tests and CI.
-2. Audit SDK provider payloads and add edge-case tests.
-3. Complete BYV-FP dataset migration and human review.
-4. Run Qwen3-4B-Thinking-2507 base-model baseline.
-5. Probe QLoRA VRAM requirements before training.
-6. Train only after dataset review and baseline capture.
+1. Review provider-specific API payload nuances and add integration tests.
+2. Complete BYV-FP dataset migration and human review.
+3. Run Qwen3-4B-Thinking-2507 base-model baseline.
+4. Probe QLoRA VRAM requirements before training.
+5. Train only after dataset review and baseline capture.
 
 ## Run template
 
