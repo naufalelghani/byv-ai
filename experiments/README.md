@@ -31,7 +31,7 @@ Record every training/evaluation run here or in a separate file per run.
 - Initial automated DSML-presence behavior match: 35 / 35.
 - Initial basic wrapper check: 6 valid, 0 invalid.
 - Mean inference latency: 9.46 seconds per example.
-- **Important:** these checks are not semantic accuracy and the original wrapper validator did not verify required parameters or semantic argument values. Manual review found missing required fields in `byv-0251`, an incorrect repository value in `byv-0244`, plus grounding/code/Markdown issues. See [test summary](byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/test_evaluation/test_summary.json) and [manual review](byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/test_evaluation/MANUAL_REVIEW.md).
+- **Important:** these checks are not semantic accuracy and the original run's wrapper validator did not verify required parameters or semantic argument values. Manual review found missing required fields in `byv-0251`, an incorrect repository value in `byv-0244`, plus grounding/code/Markdown issues. The evaluation notebook has since been updated to separately check DSML structure, declared tool names, and required/allowed parameter names for future runs; the uploaded v0.1 summary predates that enhanced validator. See [test summary](byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/test_evaluation/test_summary.json) and [manual review](byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/test_evaluation/MANUAL_REVIEW.md).
 - A test-label mismatch was also found in `byv-0218`: the generated content follows the literal user request, while the reference target differs. Keep v0.1 immutable and correct this label in a future dataset revision.
 
 ## Next evaluation
