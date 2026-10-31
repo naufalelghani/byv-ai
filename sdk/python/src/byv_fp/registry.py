@@ -6,6 +6,7 @@ import re
 from collections.abc import Iterable, Mapping
 
 from .errors import ProtocolValidationError
+from .schema import validate_schema_definition
 from .types import ToolDefinition
 
 _TOOL_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.:-]{0,127}$")
@@ -32,6 +33,7 @@ class ToolRegistry:
             raise ProtocolValidationError(
                 f"Tool {tool.name!r} input_schema root must have type='object'"
             )
+        validate_schema_definition(tool.input_schema, path=f"tools.{tool.name}")
         self._tools[tool.name] = tool
 
     def get(self, name: str) -> ToolDefinition | None:
