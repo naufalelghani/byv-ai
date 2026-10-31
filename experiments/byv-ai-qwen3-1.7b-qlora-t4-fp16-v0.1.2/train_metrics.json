@@ -1,0 +1,16 @@
+{
+  "train_runtime": 510.5487,
+  "train_samples_per_second": 1.097,
+  "train_steps_per_second": 0.137,
+  "total_flos": 2248681145942016.0,
+  "train_loss": 0.8290580136435373,
+  "epoch": 2.0,
+  "train_examples": 280,
+  "eval_examples": 35,
+  "base_model": "Qwen/Qwen3-1.7B",
+  "gpu_name": "Tesla T4",
+  "gpu_vram_gb": 14.56,
+  "max_length": 1024,
+  "lora_r": 16,
+  "lora_alpha": 32
+}
