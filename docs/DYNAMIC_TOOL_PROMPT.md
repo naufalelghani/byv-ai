@@ -64,7 +64,7 @@ function toolsToPrompt(tools) {
     lines.push('EXAMPLE: NO TOOL NEEDED');
     lines.push('User: "Who are you? Please answer in my language."');
     lines.push('Assistant: I am an assistant ready to help...');
-    return lines.join('\\n');
+    return lines.join('\n');
 }
 ```
 
