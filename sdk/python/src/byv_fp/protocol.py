@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from typing import Any
 
@@ -30,16 +31,24 @@ def _reject_non_json_constant(value: str) -> None:
     raise ProtocolParseError(f"Non-standard JSON constant is not allowed: {value}")
 
 
+def _finite_float(value: str) -> float:
+    number = float(value)
+    if not math.isfinite(number):
+        raise ProtocolParseError(f"Non-finite JSON number is not allowed: {value}")
+    return number
+
+
 def _loads_strict(payload: str) -> Any:
     try:
         return json.loads(
             payload,
             object_pairs_hook=_reject_duplicate_keys,
             parse_constant=_reject_non_json_constant,
+            parse_float=_finite_float,
         )
     except ProtocolParseError:
         raise
-    except (json.JSONDecodeError, UnicodeError, ValueError) as exc:
+    except (json.JSONDecodeError, UnicodeError, ValueError, OverflowError) as exc:
         raise ProtocolParseError(f"Invalid BYV-FP JSON: {exc}") from exc
 
 
@@ -48,12 +57,7 @@ def parse_model_output(
     *,
     max_payload_bytes: int = DEFAULT_MAX_PAYLOAD_BYTES,
 ) -> BYVFPResponse:
-    """Parse the model's final text channel.
-
-    Text without a BYV-FP header remains ordinary text. A declared but malformed
-    protocol response fails closed. Pass only the final assistant text channel;
-    hidden reasoning / thinking-channel text is not part of this wire format.
-    """
+    """Parse the model's final text channel; malformed declared protocol fails closed."""
     if not isinstance(text, str):
         raise TypeError("model output must be str")
 
@@ -67,7 +71,11 @@ def parse_model_output(
     if first_line != PROTOCOL_HEADER:
         raise ProtocolParseError(f"Unsupported BYV-FP header: {first_line!r}")
 
-    if len(payload.encode("utf-8")) > max_payload_bytes:
+    try:
+        payload_size = len(payload.encode("utf-8"))
+    except UnicodeEncodeError as exc:
+        raise ProtocolParseError("BYV-FP payload is not valid UTF-8 text") from exc
+    if max_payload_bytes < 0 or payload_size > max_payload_bytes:
         raise ProtocolParseError(
             f"BYV-FP payload exceeds the {max_payload_bytes}-byte limit"
         )
@@ -124,6 +132,7 @@ def serialize_final(content: str) -> str:
         {"type": "final", "content": content},
         ensure_ascii=False,
         separators=(",", ":"),
+        allow_nan=False,
     )
     return f"{PROTOCOL_HEADER}\n{body}"
 
@@ -137,5 +146,6 @@ def serialize_tool_calls(calls: list[ToolCall] | tuple[ToolCall, ...]) -> str:
         {"type": "tool_calls", "calls": body_calls},
         ensure_ascii=False,
         separators=(",", ":"),
+        allow_nan=False,
     )
     return f"{PROTOCOL_HEADER}\n{body}"
