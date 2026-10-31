@@ -28,8 +28,9 @@ Eksperimen membangun model bahasa yang dapat menghasilkan **teks biasa** atau **
 
 1. [Rencana proyek dan tahapan](docs/PLAN.md)
 2. [Spesifikasi perilaku dan DSML](docs/DSML_SPEC.md)
-3. [Rencana training Colab](docs/TRAINING_PLAN.md)
-4. [Log eksperimen](experiments/README.md)
+3. [Contoh dynamic tool instructions dan prompt DSML](docs/DYNAMIC_TOOL_PROMPT.md)
+4. [Rencana training Colab](docs/TRAINING_PLAN.md)
+5. [Log eksperimen](experiments/README.md)
 
 ## Batasan
 
