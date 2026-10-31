@@ -1,62 +1,99 @@
 # BYV-AI
 
-Eksperimen membangun model bahasa yang dapat menghasilkan **teks biasa** atau **DSML sebagai teks**, sesuai instruksi pengguna. Model tidak bergantung pada native tool-calling API. Jika keluaran berisi DSML, aplikasi terpisah dapat mem-parse, memvalidasi, dan—dengan izin yang sesuai—mengeksekusinya.
+BYV-AI adalah proyek model text-generation yang menghasilkan jawaban teks biasa atau **BYV Format Protocol (BYV-FP)** sebagai teks. Model tidak wajib menggunakan native tool-calling API. BYV-FP diproses oleh SDK terpisah yang memvalidasi permintaan lalu menjembatani format tersebut ke provider.
 
-> **Status:** training QLoRA pertama dan inference held-out test 35 contoh sudah berhasil dijalankan. Manual review menemukan isu penting pada grounding tool-result, kelengkapan argumen DSML, dan kualitas kode/Markdown; model masih prototipe eksperimental dan belum siap rilis.
->
-> **Hasil training:** Qwen3-1.7B, 280 contoh train, 35 contoh eval, 2 epoch / 70 steps, aggregate train loss **0.8291**, dan eval loss akhir **0.7142**.
->
-> **Hasil test:** 35/35 prediksi non-empty, 0 unfinished thinking, 6 contoh meminta DSML dan 6 prediksi mengeluarkan DSML; pemeriksaan otomatis awal mencatat 35/35 kecocokan kehadiran DSML. Angka tersebut bukan semantic accuracy. Manual review menemukan pemanggilan DSML yang argumennya tidak lengkap/salah serta beberapa jawaban konten dan kode yang keliru.
+> **Status pengembangan:** fondasi Python SDK BYV-FP v0.1 sudah ditambahkan pada branch kerja. Core menyediakan parser, validator schema, registry tool, allowlist, dan approval gate. Bridge provider mencakup OpenAI Chat Completions, OpenAI Responses API, dan Anthropic Messages API. Implementasi masih perlu test run/CI, review API edge cases, dan integrasi end-to-end sebelum dianggap rilis.
 
-## Tujuan
+## Arsitektur
 
-- Jawaban normal tetap berupa teks biasa.
-- DSML hanya digunakan ketika diminta atau ketika protokol aplikasi secara eksplisit mengarahkannya.
-- Menjaga sintaks DSML yang disepakati secara konsisten.
-- Melatih adapter dengan QLoRA di Google Colab gratis bila GPU tersedia.
-- Menguji hasil dan menyiapkan inference CPU-only pada VPS.
+```text
+BYV-AI model (text generation)
+        |
+        | plain text OR BYV-FP/1.0 text envelope
+        v
+     BYV-FP SDK
+        |
+        +-- strict parser + schema validation
+        +-- trusted tool registry + allowlist
+        +-- approval / policy gate
+        |
+        +-- OpenAI Chat Completions bridge
+        +-- OpenAI Responses API bridge
+        +-- Anthropic Messages API bridge
+        |
+        v
+Host application executes approved tools
+```
 
-## Keputusan awal
+**BYV-AI model hanya menghasilkan teks. SDK tidak mengeksekusi tool.** Host aplikasi tetap bertanggung jawab atas autentikasi, izin, persetujuan pengguna, sandbox, timeout, audit log, dan eksekusi aksi.
 
-| Area | Keputusan awal |
-|---|---|
-| Baseline | Qwen3-1.7B; bandingkan model lain setelah baseline terukur |
-| Training | Supervised fine-tuning (SFT) dengan QLoRA/PEFT |
-| Data | Percakapan user/assistant; DSML ditempatkan di teks assistant, bukan native tool_calls |
-| Format | Pertahankan contoh DSML yang disepakati; jangan desain ulang tanpa alasan |
-| Runtime training | Google Colab free, GPU bila tersedia |
-| Deployment target | VPS CPU-only; konversi/quantization GGUF dan uji dengan llama.cpp/Ollama |
-| Safety | DSML parser/executor terpisah; validasi izin dan parameter sebelum menjalankan aksi |
+## BYV-FP SDK
 
-## Train in Google Colab
+Implementasi awal tersedia pada branch kerja:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/naufalelghani/byv-ai/blob/main/notebooks/BYV-AI_Training_v0.1.2_T4_FP16_DTYPE_FIX.ipynb)
+- [Python SDK source](https://github.com/naufalelghani/byv-ai/tree/feature/byv-fp-sdk-v0.1/sdk/python)
+- [SDK installation and usage](https://github.com/naufalelghani/byv-ai/blob/feature/byv-fp-sdk-v0.1/sdk/python/README.md)
+- [BYV-FP v1.0 protocol specification](https://github.com/naufalelghani/byv-ai/blob/feature/byv-fp-sdk-v0.1/docs/BYV_FP_SPEC.md)
+- [SDK architecture and provider mapping](https://github.com/naufalelghani/byv-ai/blob/feature/byv-fp-sdk-v0.1/docs/BYV_FP_SDK.md)
 
-Open the BYV-AI v0.1.2 QLoRA notebook directly in Google Colab. The notebook detects the available GPU and selects a compatible compute dtype; for Tesla T4 it uses FP16. Mount Google Drive and provide `train.jsonl` and `eval.jsonl` in `MyDrive/BYV-AI/data/` before training.
+Provider wajib di v0.1:
+- **OpenAI Chat Completions**
+- **OpenAI Responses API**
+- **Anthropic Messages API**
 
-Notebook source: [`notebooks/BYV-AI_Training_v0.1.2_T4_FP16_DTYPE_FIX.ipynb`](notebooks/BYV-AI_Training_v0.1.2_T4_FP16_DTYPE_FIX.ipynb).
+Core BYV-FP tidak bergantung pada format internal salah satu provider. Provider bridge bertugas mengubah definisi tool, tool invocation, dan tool result di antara format netral dan payload native provider.
 
-## Evaluate the held-out test set
+## Format ringkas
 
-[![Open Evaluation in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/naufalelghani/byv-ai/blob/main/notebooks/BYV-AI_Test_Evaluation_v0.1.ipynb)
+Jawaban akhir:
 
-The evaluation notebook runs inference only; it does **not** train the model or execute DSML tools. The first run completed all 35 examples across 13 categories (35 non-empty predictions, 0 unfinished thinking, mean latency 9.46 s). These automatic checks are not semantic accuracy. See the [test summary](experiments/byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/test_evaluation/test_summary.json) and [manual review](experiments/byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/test_evaluation/MANUAL_REVIEW.md) for the discovered DSML-argument, grounding, code-generation, and Markdown issues.
+```text
+BYV-FP/1.0
+{"type":"final","content":"Halo! Ada yang bisa dibantu?"}
+```
 
-- Notebook: [`notebooks/BYV-AI_Test_Evaluation_v0.1.ipynb`](notebooks/BYV-AI_Test_Evaluation_v0.1.ipynb)
-- Held-out test data: [`data/test.jsonl`](data/test.jsonl)
-- Training metrics: [`train_metrics.json`](experiments/byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/train_metrics.json)
-- Per-step training/evaluation history: [`trainer_log_history.json`](experiments/byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/trainer_log_history.json)
+Satu atau beberapa tool call:
 
-Before running, keep the trained adapter in `MyDrive/BYV-AI/outputs/byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/`. The notebook downloads the held-out test split from this repository and checks for ID overlap with train/eval files when those files are present. The current notebook also inspects tool names and required/allowed parameter names; argument values and semantic/code quality still require manual review.
+```text
+BYV-FP/1.0
+{"type":"tool_calls","calls":[{"id":"call_01","tool":"weather.lookup","arguments":{"city":"Martapura"}}]}
+```
+
+Tanpa header BYV-FP, output diperlakukan sebagai teks biasa. Jika header BYV-FP ada tetapi JSON/envelope rusak, parser harus gagal tertutup (fail closed). Tool calls tetap dianggap request tidak tepercaya, bukan izin untuk mengeksekusi tool.
+
+## Model target eksperimen berikutnya
+
+Target model yang dipilih untuk eksperimen berikutnya adalah **Qwen/Qwen3-4B-Thinking-2507** (4B class, thinking-only). Model ini belum dilatih untuk BYV-FP. Dataset dan training recipe harus dimigrasikan/divalidasi terlebih dahulu; adapter Qwen3-1.7B lama tidak dapat langsung digunakan pada base model 4B atau format protokol baru.
+
+Model card: https://huggingface.co/Qwen/Qwen3-4B-Thinking-2507
+
+QLoRA di Colab T4 akan diperlakukan sebagai eksperimen feasibility, bukan jaminan muat atau cepat. Konfigurasi harus diuji dengan memory probe dan sequence length konservatif.
+
+## Eksperimen legacy DSML
+
+Run pertama Qwen3-1.7B dengan dataset DSML lama tetap disimpan sebagai baseline historis:
+
+- 280 train examples, 35 eval examples, 2 epochs / 70 steps.
+- Aggregate train loss 0.8291; final eval loss 0.7142.
+- Held-out test awal: 35/35 output non-empty dan 6/6 contoh DSML terdeteksi.
+- Metrik itu **bukan semantic accuracy**. Manual review menemukan missing/incorrect tool arguments, grounding errors, dan issue kualitas kode/Markdown.
+
+Lihat [legacy experiment log](experiments/README.md), [test summary](experiments/byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/test_evaluation/test_summary.json), dan [manual review](experiments/byv-ai-qwen3-1.7b-qlora-t4-fp16-v0.1.2/test_evaluation/MANUAL_REVIEW.md).
 
 ## Mulai dari sini
 
-1. [Rencana proyek dan tahapan](docs/PLAN.md)
-2. [Spesifikasi perilaku dan DSML](docs/DSML_SPEC.md)
-3. [Contoh dynamic tool instructions dan prompt DSML](docs/DYNAMIC_TOOL_PROMPT.md)
-4. [Rencana training Colab](docs/TRAINING_PLAN.md)
-5. [Log eksperimen](experiments/README.md)
+1. [Project plan](docs/PLAN.md)
+2. [BYV-FP specification](docs/BYV_FP_SPEC.md)
+3. [BYV-FP SDK guide](docs/BYV_FP_SDK.md)
+4. [QLoRA training plan](docs/TRAINING_PLAN.md)
+5. [Experiment log](experiments/README.md)
 
-## Batasan
+Dokumen DSML lama dipertahankan sebagai catatan historis; DSML tidak lagi menjadi protokol target BYV-AI.
 
-Fine-tuning dapat meningkatkan kepatuhan format, tetapi tidak menjamin output selalu valid. Evaluasi otomatis dalam notebook test terutama memeriksa struktur dan perilaku format; ia tidak membuktikan kebenaran semantik. Gunakan review manusia dan validator aplikasi. DSML sebagai teks tidak otomatis lebih hemat daripada native tool calling; pendekatan ini terutama memberi kontrol protokol, kompatibilitas, dan modularitas. Biaya inference tetap ditentukan model, konteks/output, runtime, dan hardware.
+## Prinsip kualitas dan keamanan
+
+- Jangan klaim SOTA tanpa benchmark yang terdefinisi, reproducible, dan dibandingkan dengan baseline relevan.
+- Fine-tuning tidak menjamin output selalu valid; tetap gunakan parser dan validator.
+- Tool schema harus berasal dari aplikasi, bukan dari model.
+- Unknown tool, parameter invalid, allowlist violation, dan approval yang belum diberikan harus ditolak/ditahan.
+- Jangan pernah menganggap output tool sebagai fakta tepercaya tanpa pemeriksaan.
