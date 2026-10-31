@@ -14,6 +14,15 @@ Prompt sumber disimpan di folder [system/](system/):
 
 Template teks disiapkan agar notebook fine-tuning mendatang dapat mengambil instruksi tetap dari repo dan memasukkan daftar tool/schema yang sesuai untuk setiap contoh.
 
+## Colab notebooks — BYV Markup v0.1
+
+Open the notebooks directly from GitHub in Google Colab. No notebook upload or manual notebook download is needed:
+
+- [Training QLoRA — Open in Colab](https://colab.research.google.com/github/naufalelghani/byv-ai/blob/main/notebooks/BYV-AI_Training_BYV-Markup_v0.1_Qwen3-4B-Instruct-2507_T4_QLoRA.ipynb)
+- [Held-out test evaluation — Open in Colab](https://colab.research.google.com/github/naufalelghani/byv-ai/blob/main/notebooks/BYV-AI_Test_Evaluation_BYV-Markup_v0.1_Qwen3-4B-Instruct-2507.ipynb)
+
+The notebook downloads the pinned BYV system-prompt template from this repository at runtime. The BYV Markup dataset ZIP is still requested once on first run and cached in Google Drive; the notebook files themselves are loaded directly from GitHub.
+
 ## Arah format aktif: BYV markup
 
 Desain format yang sedang dikembangkan adalah **BYV structured markup** dengan tiga mode output: TEXT, MIXED, dan STRUCTURED. Draft grammar pertama tersedia di [BYV Format Specification v0.1](docs/BYV_FORMAT_SPEC_v0.1.md).
