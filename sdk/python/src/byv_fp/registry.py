@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable, Mapping
 
 from .errors import ProtocolValidationError
 from .types import ToolDefinition
+
+_TOOL_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.:-]{0,127}$")
 
 
 class ToolRegistry:
@@ -17,8 +20,10 @@ class ToolRegistry:
             self.register(tool)
 
     def register(self, tool: ToolDefinition) -> None:
-        if not isinstance(tool.name, str) or not tool.name:
-            raise ProtocolValidationError("Tool name must be a non-empty string")
+        if not isinstance(tool.name, str) or not _TOOL_NAME_RE.fullmatch(tool.name):
+            raise ProtocolValidationError("Tool name has an invalid format")
+        if not isinstance(tool.description, str):
+            raise ProtocolValidationError(f"Tool {tool.name!r} description must be a string")
         if tool.name in self._tools:
             raise ProtocolValidationError(f"Tool already registered: {tool.name}")
         if not isinstance(tool.input_schema, Mapping):
