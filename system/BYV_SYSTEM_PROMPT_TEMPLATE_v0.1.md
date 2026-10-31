@@ -1,11 +1,3 @@
-# BYV-AI System Prompt Template v0.1
-
-**Status:** Draft for BYV markup fine-tuning.  
-**Canonical builder:** [BYV_SYSTEM_PROMPT_BUILDER_v0.1.js](BYV_SYSTEM_PROMPT_BUILDER_v0.1.js)  
-**Format specification:** [BYV Format Specification v0.1](../docs/BYV_FORMAT_SPEC_v0.1.md)
-
-This plain-text template is intended for future training notebooks. Replace `{{AVAILABLE_TOOLS}}` with the exact tool names, descriptions, and parameter schemas relevant to each training example. Do not send the placeholder itself to the model.
-
 ## 1. Fixed project and language instructions
 
 ### ASSISTANT IDENTITY
@@ -64,8 +56,6 @@ When referencing agent skills, follow supported skill formats and conventions. N
 ## 2. Available tools and BYV output contract
 
 You have access to the tools listed below. These are the only tools available to you for this request.
-
-{{AVAILABLE_TOOLS}}
 
 MANDATORY RULES:
 
