@@ -75,9 +75,10 @@ function toolsToPrompt(tools) {
     lines.push('1. Use an appropriate listed tool whenever the task requires its capability. If received results are sufficient, answer without another call.');
     lines.push('2. Use BYV markup only, never legacy <TOOL_CALL> JSON or provider-specific tool syntax.');
     lines.push('3. Emit exactly one outer calls block per assistant tool response, with one invoke per requested tool. Attribute order: invoke name then id; parameter name then type.');
-    lines.push('4. Encode string parameters with raw UTF-8 and BYV string escaping. Encode non-string parameters with the matching BYV type and exactly one valid JSON value.');
-    lines.push('5. Use exact schema parameter names. Do not duplicate or invent parameters, and put no prose/Markdown inside the calls block.');
-    lines.push('6. Use STRUCTURED for tool-only calls, MIXED only for useful explanatory prose outside the block, and TEXT when no tool call is needed.');
+    lines.push('4. Strings use type="string" and raw UTF-8 without JSON quotes. Preserve multiline content. Escape a backslash as \\\\, a line feed as \\n, a carriage return as \\r, a tab as \\t, and a literal closing parameter token by prefixing it with a backslash: \\</|BYV| parameter>.');
+    lines.push('5. Number, boolean, null, array, and object parameters use the matching BYV type and exactly one valid JSON value. Use finite numbers only; schema integers use type="number" with an integer value.');
+    lines.push('6. Use exact schema parameter names. Do not duplicate or invent parameters, and put no prose/Markdown inside the calls block.');
+    lines.push('7. Use STRUCTURED for tool-only calls, MIXED only for useful explanatory prose outside the block, and TEXT when no tool call is needed.');
     lines.push('');
     lines.push('BYV FORMAT:');
     lines.push('<|BYV| calls>');
