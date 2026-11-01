@@ -21,7 +21,7 @@ Open the notebooks directly from GitHub in Google Colab. No notebook upload or m
 - [Training QLoRA — Open in Colab](https://colab.research.google.com/github/naufalelghani/byv-ai/blob/main/notebooks/BYV-AI_Training_BYV-Markup_v0.1_Qwen3-4B-Instruct-2507_T4_QLoRA.ipynb)
 - [Held-out test evaluation — Open in Colab](https://colab.research.google.com/github/naufalelghani/byv-ai/blob/main/notebooks/BYV-AI_Test_Evaluation_BYV-Markup_v0.1_Qwen3-4B-Instruct-2507.ipynb)
 
-The notebook downloads the pinned BYV system-prompt template from this repository at runtime. The BYV Markup dataset ZIP is still requested once on first run and cached in Google Drive; the notebook files themselves are loaded directly from GitHub.
+The current training and evaluation notebooks do not download a system-prompt template. They build compact BYV instructions inline and inject each sample's tool schema from the dataset. The BYV Markup dataset ZIP is requested once on first run and cached in Google Drive; the notebook files themselves are loaded directly from GitHub.
 
 ## Arah format aktif: BYV markup
 
